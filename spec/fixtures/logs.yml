@@ -1,0 +1,21 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+one:
+  op: MyString
+  type: MyString
+  ts: 2010-03-01 20:51:47
+  uid: MyString
+  puid: MyString
+  ouid: MyString
+  size: 1
+  data: MyString
+
+two:
+  op: MyString
+  type: MyString
+  ts: 2010-03-01 20:51:47
+  uid: MyString
+  puid: MyString
+  ouid: MyString
+  size: 1
+  data: MyString
