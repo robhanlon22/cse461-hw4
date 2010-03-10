@@ -1,6 +1,6 @@
 require 'socket'
 
-AntiEntropyServerJob = Struct.new(:tcp_port) do
+AntiEntropyServer = Struct.new(:tcp_port) do
   include Elmo
 
   def perform
