@@ -1,13 +1,13 @@
 require 'socket'
 require 'activesupport'
 
-AntiEntropyServer = Struct.new(:tcp_port, :logger) do
+AntiEntropyServer = Struct.new(:tcp_port) do
   include Elmo
   def perform
-    @logger.info("Starting TCP server on port #{@tcp_port}")
+    logger.info("Starting TCP server on port #{@tcp_port}")
     server = TCPServer.new(@tcp_port)
     client = server.accept
-    @logger.info("Accepted client")
+    logger.info("Accepted client")
     begin
       handle_client(client)
     rescue Exception => e
@@ -18,7 +18,7 @@ AntiEntropyServer = Struct.new(:tcp_port, :logger) do
     end
   ensure
     server.close
-    Delayed::Job.enqueue(new(@tcp_port, @logger))
+    Delayed::Job.enqueue(new(@tcp_port))
   end
 
   # Given a client (TCPSocket), sends all log entries the client is missing
@@ -26,11 +26,11 @@ AntiEntropyServer = Struct.new(:tcp_port, :logger) do
   # of errors may be thrown, all of them fatal.
   def handle_client(client)
     client_vector = get_vector(client)
-    @logger.info("Got client's version vector: #{client_vector}")
+    logger.info("Got client's version vector: #{client_vector}")
     if client_vector
-      @logger.info("ACK")
+      logger.info("ACK")
       send_ack(client, :success)
-      @logger.info("Sending missing logs...")
+      logger.info("Sending missing logs...")
       send_missing_logs(client, client_vector)
     else
       send_ack(client, :error, :message => "Invalid log vector.")

@@ -1,5 +1,3 @@
-UUID_FORMAT = /\w{8}-(?:\w{4}-){3}\w{12}/
-
 def assign_uuid
   uuid_file_name = File.join("#{RAILS_ROOT}", ".#{RAILS_ENV}-uuid")
 
@@ -16,4 +14,7 @@ def assign_uuid
   uuid
 end
 
-APP_UUID = assign_uuid
+unless defined? APP_UUID
+  UUID_FORMAT = /\w{8}-(?:\w{4}-){3}\w{12}/
+  APP_UUID = assign_uuid
+end

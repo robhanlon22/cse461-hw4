@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+
+ENV['RAILS_ENV'] ||= 'development'
+
+RAILS_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+$LOAD_PATH.unshift(RAILS_ROOT)
+
+require 'vendor/plugins/delayed_job_spawner/lib/delayed_job_spawner'
+require 'config/environment'
+require 'config/jobs'
+
+DelayedJobSpawner.spawn!(
+  :log_file => "#{RAILS_ROOT}/log/delayed_job_spawner.log",
+  :pid_file => "#{RAILS_ROOT}/log/delayed_job_spawner.log",
+  :working_dir => RAILS_ROOT,
+  :sync_log => true,
+  :singleton => true
+)
+

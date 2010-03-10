@@ -11,10 +11,12 @@ rescue Exception
   return false
 end
 
-ports = [*1024...65536].shuffle
-until ports.empty?
-  port = ports.pop
-  if port_open?(port)
-    break PORT = port
+unless defined? PORT
+  ports = [*1024...65536].shuffle
+  until ports.empty?
+    port = ports.pop
+    if port_open?(port)
+      break PORT = port
+    end
   end
 end

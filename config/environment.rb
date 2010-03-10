@@ -8,6 +8,7 @@ require File.join(File.dirname(__FILE__), 'boot')
 
 Rails::Initializer.run do |config|
   config.gem 'uuid'
+  config.gem 'yajl-ruby', :lib => 'yajl'
 
   require 'lib/string_extensions'
   require 'lib/io_extensions'

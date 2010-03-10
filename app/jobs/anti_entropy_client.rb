@@ -2,7 +2,7 @@ require 'socket'
 require 'yajl'
 require 'activesupport'
 
-AntiEntropyClient = Struct.new(:server_addr, :tcp_port, :logger) do
+AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   include Elmo
 
   def perform
