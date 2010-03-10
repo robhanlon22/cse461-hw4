@@ -1,20 +1,32 @@
 require 'socket'
 require 'yajl'
 
-AntiEntropyClient = Struct.new(server_addr, tcp_port) do
-  ACK = {"OP" => "ACK"}.to_json.prefix_with_length!
+AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
+  ACK = Yajl::Encoder.encode({"OP" => "ACK"}).prefix_with_length!
 
   def perform
-    sock = TCPSocket.new(@server_addr, @tcp_port)
-    sock.write(Log.get_version_vector.prefix_with_length!)
+    @sock = TCPSocket.new(@server_addr, @tcp_port)
+    @sock.write(Log.get_version_vector.prefix_with_length!)
+
     wait_for_ack
-    raw_logs = sock.read
+
+    raw_logs = grab_raw_logs
     log_hashes = split_logs(raw_logs)
 
     Log.add_logs(log_hashes)
   end
 
   private
+  def grab_raw_logs
+    raw_logs = ""
+    until @sock.eof?
+      length = @sock.read_length_field
+      raw_logs << @sock.read(length)
+      send_ack
+    end
+    raw_logs
+  end
+
   def split_logs(raw_logs)
     log_hashes = []
     io = StringIO.new(raw_logs)
@@ -26,9 +38,9 @@ AntiEntropyClient = Struct.new(server_addr, tcp_port) do
   end
 
   def wait_for_ack
-    until sock.eof?
-      length = sock.read_length_field
-      ack = Yajl::Parser.parse(sock.read(length))
+    until @sock.eof?
+      length = @sock.read_length_field
+      ack = Yajl::Parser.parse(@sock.read(length))
 
       next unless ack["OP"] == "ACK"
       abort ack["MSG"] if ack["FLG"] == "ERROR"
@@ -36,7 +48,7 @@ AntiEntropyClient = Struct.new(server_addr, tcp_port) do
     end
   end
 
-  def send_ack(sock)
-    sock.write(ACK)
+  def send_ack
+    @sock.write(ACK)
   end
 end

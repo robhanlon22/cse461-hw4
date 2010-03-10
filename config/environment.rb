@@ -10,4 +10,13 @@ Rails::Initializer.run do |config|
   config.gem 'uuid'
 
   require 'lib/string_extensions'
+  require 'lib/io_extensions'
+  require 'socket'
 end
+
+Dir.glob(File.join(RAILS_ROOT, 'app', 'jobs', '*.rb')).each do |job|
+  require job
+end
+
+Delayed::Job.enqueue(Broadcaster.new(PORT))
+Delayed::Job.enqueue(BroadcastDelegator.new)

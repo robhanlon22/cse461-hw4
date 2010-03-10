@@ -9,7 +9,15 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100309221840) do
+ActiveRecord::Schema.define(:version => 20100310072924) do
+
+  create_table "comments", :force => true do |t|
+    t.string   "text"
+    t.datetime "ts"
+    t.string   "ouid"
+    t.string   "uid"
+    t.string   "puid"
+  end
 
   create_table "delayed_jobs", :force => true do |t|
     t.integer  "priority",   :default => 0
@@ -35,6 +43,16 @@ ActiveRecord::Schema.define(:version => 20100309221840) do
     t.string   "PUID"
     t.string   "SIZE"
     t.string   "DATA"
+  end
+
+  create_table "photos", :force => true do |t|
+    t.string   "uid"
+    t.string   "ouid"
+    t.datetime "ts"
+    t.string   "image_file_name"
+    t.string   "image_content_type"
+    t.integer  "image_file_size"
+    t.datetime "image_updated_at"
   end
 
 end

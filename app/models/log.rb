@@ -1,6 +1,5 @@
 class Log < ActiveRecord::Base
   DEFAULT_JSON_FIELDS = [:OP, :TYPE, :UID, :TS, :OUID]
-  UUID_FORMAT = /\w{8}-(?:\w{4}-){3}\w{12}/
   VECTOR_SELECTOR = {:select => 'UID, TS, MAX(TS)', :group => 'UID'}
 
   column_names.each do |attr|
@@ -21,10 +20,12 @@ class Log < ActiveRecord::Base
   alias_method :to_json_old, :to_json
 
   def self.add_logs(log_hashes)
-    log_hashes.each do |log_hash|
-      log = new(log_hash)
-      log.ts = Time.at(log.ts.to_i)
-      log.save!
+    Log.transaction do
+      log_hashes.each do |log_hash|
+        log = new(log_hash)
+        log.ts = Time.at(log.ts.to_i)
+        log.save
+      end
     end
   end
 
@@ -41,12 +42,14 @@ class Log < ActiveRecord::Base
             e = Photo.new
             e.image = data
           else # comment
+            e = Comment.new
             e.puid = log.puid
             e.text = log.data
           end
           e.ts = log.ts
           e.uid = log.uid
           e.ouid = log.ouid
+          e.save
         else
           (log.photo? ? Photo : Comment).find_by_uid(log.uid).destroy
         end

@@ -9,6 +9,6 @@ Broadcaster = Struct.new(:tcp_port) do
       sleep 5
     end
   rescue
-    Delayed::Job.enqueue(BroadcastJob.new(@tcp_port))
+    Delayed::Job.enqueue(Broadcaster.new(@tcp_port))
   end
 end
