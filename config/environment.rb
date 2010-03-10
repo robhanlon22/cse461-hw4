@@ -11,6 +11,8 @@ Rails::Initializer.run do |config|
 
   require 'lib/string_extensions'
   require 'lib/io_extensions'
+  require 'lib/elmo'
+
   require 'socket'
 end
 
