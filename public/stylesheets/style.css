@@ -219,3 +219,70 @@ ul.link_list {
   ul.link_list li {
     margin-bottom: 5px;
   }
+  
+img.thumbnail {
+  width: 200px;
+  margin-bottom: 10px;
+}
+
+img.full {
+  width: 480px;
+  margin: 10px;
+}
+
+form input[type="hidden"] {
+  display: none;
+}
+
+.comment_form {
+  border: 1px solid #aaa;
+  background: #eee;
+  color: #666;
+  padding: 10px;
+}
+
+.comment_form label,
+.comment_form input,
+.comment_form textarea {
+  display: block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  float: left;
+}
+
+.comment_form textarea {
+  width: 98%;
+}
+
+.comment_form input[type="submit"] {
+  float: right;
+}
+
+.clear {
+  clear: both;
+}
+
+.comment_list {
+  list-style: none;
+  margin: 15px 0;
+  padding: 0;
+  color: #666;
+}
+  .comment_list .comment {
+    margin-bottom: 10px;
+    padding: 5px 0;
+    border-bottom: 1px dashed #666;
+  }
+  
+  .comment_list .comment h3 {
+    font-weight: bold;
+    color: #444;
+    border-bottom: 1px solid #444;
+    padding: 0 0 3px 0;
+  }
+  
+  .comment_list .comment .delete_button {
+    float: right;
+    margin-left: 10px;
+    margin-bottom: 10px;
+  }

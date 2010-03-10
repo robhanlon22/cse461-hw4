@@ -1,7 +1,21 @@
-<li>
-  <p class="header">At <%= comment.ts.to_i %>, <%= comment.ouid %> said...</p>
+<li class="comment">
+  <h3>
+    At <%= comment.ts.to_i %>,
+    <%= link_to truncate(comment.ouid, 20), { :action => :list, :uuid => comment.ouid} %> said:
+  </h3>
   <p>
+    <% if comment.ouid == APP_UUID -%>
+      <div class="delete_button">
+        <form name="delete_comment_<%= comment.uid %>"
+         action="<%= url_for( :action => :delete_comment, :uuid => comment.uid ) %>"
+         method="post">
+          <a href="#" onclick="document.delete_comment_<%= comment.uid %>.submit();">
+            <%= icon :delete2, :shadow => false, :size => 24 %>
+          </a>
+        </form>
+      </div>
+    <% end -%>
     <%= comment.text %>
+    <div class="clear"></div>
   </p>
-  <b>TODO: ADD A "DELETE" BUTTON WHEN IT'S THIS INSTANCE'S COMMENT</b>
 </li>

@@ -78,7 +78,7 @@ class Log < ActiveRecord::Base
             :TS   => comment.ts,
             :UID  => comment.uid,
             :PUID => comment.puid,
-            :OUID => comment.oid,
+            :OUID => comment.ouid,
             :data => comment.text)
   end
   
@@ -92,13 +92,17 @@ class Log < ActiveRecord::Base
   end
   
   def self.for_photo(photo)
-    raise RuntimeError.new("FINISH IMPLEMENTING THIS!")
+    # Read the file's bits from disk...
+    data = nil
+    File.open(photo.image.path, "rb") do |file|
+      data = Base64::encode64(file.read)
+    end
     Log.new(:OP   => "WRITE",
             :TYPE => "PHOTO",
             :TS   => photo.ts,
             :UID  => photo.uid,
-            :OUID => photo.oid,
-            :DATA => nil) # <====== figure out the data bit
+            :OUID => photo.ouid,
+            :DATA => data)
   end
   
   # Auto-generates the next available timestamp

@@ -37,7 +37,7 @@ class PhotosController < ApplicationController
     
     @photo = Photo.find_by_uid(params[:uuid])    
     if @photo
-      @comments = Comment.find_by_ouid(params[:uuid])
+      @comments = Comment.find_all_by_puid(params[:uuid])
     else
       logger.error("Attempt to view photo with bogus (or unknown) UUID.")
       redirect_to( :action => :index ) and return
@@ -46,10 +46,35 @@ class PhotosController < ApplicationController
 
   def new
     @page_title = "Add a new photo"
+    
+    @photo = Photo.new
   end
 
   def create
-    @page_title = "Not implemented yet..."
+    if params[:photo].nil?
+      logger.error("Attempt to add a photo without sending any data.")
+      redirect_to( :action => :index ) and return
+    end
+        
+    photo_ts = Log.next_timestamp
+    photo_uuid = UUID.new.generate
+    photo = Photo.new(params[:photo].merge(:uid => photo_uuid,
+                                           :ts => photo_ts,
+                                           :ouid => APP_UUID))
+    begin
+      Log.transaction do
+        photo.save!
+        log_entry = Log.for_photo(photo)
+        log_entry.save!
+      end
+      
+      flash[:notice] = "Photo uploaded successfully!"
+      redirect_to( :action => :view, :uuid => photo_uuid ) and return
+    rescue => e
+      logger.error("Failed to upload a new photo: #{e} -- #{e.message}")
+      flash[:error] = "Unable to upload your photo."
+      redirect_to( :back ) and return
+    end
   end
 
   def destroy
@@ -73,7 +98,9 @@ class PhotosController < ApplicationController
         # Atomically add both a comment object AND add a corresponding Log entry
         Log.transaction do
           # Comment first so that if it doesn't validate, we short-circuit early
-          comment = Comment.new(params[:comment].merge(:ts => comment_ts, :uid => comment_uuid))
+          comment = Comment.new(params[:comment].merge(:ts => comment_ts,
+                                                       :uid => comment_uuid,
+                                                       :ouid => APP_UUID))
           comment.save!
           log_entry = Log.for_comment(comment)
           log_entry.save!
