@@ -10,4 +10,5 @@ Rails::Initializer.run do |config|
   config.gem 'uuid'
 
   require 'lib/string_extensions'
+  require 'lib/elmo'
 end
