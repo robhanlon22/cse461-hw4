@@ -4,7 +4,7 @@ class PhotosController < ApplicationController
     
     # Figure out what active (i.e., "photo-posting") UUIDs there are
     photos = Photo.find_by_sql("SELECT DISTINCT OUID FROM photos ORDER BY OUID ASC")
-    @instances = photo_uids.map { |photo| photo.ouid }
+    @instances = photos.map { |photo| photo.ouid }
     logger.info(@instances.inspect)
   end
 
