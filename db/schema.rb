@@ -9,7 +9,22 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100302045147) do
+ActiveRecord::Schema.define(:version => 20100309221840) do
+
+  create_table "delayed_jobs", :force => true do |t|
+    t.integer  "priority",   :default => 0
+    t.integer  "attempts",   :default => 0
+    t.text     "handler"
+    t.string   "last_error"
+    t.datetime "run_at"
+    t.datetime "locked_at"
+    t.datetime "failed_at"
+    t.string   "locked_by"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "delayed_jobs", ["locked_by"], :name => "index_delayed_jobs_on_locked_by"
 
   create_table "logs", :force => true do |t|
     t.string   "OP",   :null => false
@@ -18,7 +33,7 @@ ActiveRecord::Schema.define(:version => 20100302045147) do
     t.datetime "TS",   :null => false
     t.string   "OUID", :null => false
     t.string   "PUID"
-    t.integer  "SIZE"
+    t.string   "SIZE"
     t.string   "DATA"
   end
 
