@@ -1,0 +1,11 @@
+<ul>
+  <% if latest_photos.empty? -%>
+	  <li><a href="#">No photos to show</a></li>
+	<% else -%>
+	  <% for photo in latest_photos -%>
+	    <li>
+	      <%= link_to photo.uid, :action => :view, :uuid => photo.uid %>
+	    </li>
+	  <% end -%>
+	<% end -%>
+</ul>

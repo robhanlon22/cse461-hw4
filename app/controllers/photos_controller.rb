@@ -1,4 +1,9 @@
 class PhotosController < ApplicationController
+  before_filter :init_latest_photos, :only => [ :index,
+                                                :list,
+                                                :view,
+                                                :new ]
+  
   def index
     @page_title = "Welcome"
     
@@ -111,5 +116,13 @@ class PhotosController < ApplicationController
       logger.error("Attempted deletion of comment with bogus (or unknown) UUID.")
       redirect_to( :action => :index ) and return
     end
+  end
+  
+  private
+  
+  # Initializes a @latest_photos variable containing up to 5 of the most
+  # recently added photos.
+  def init_latest_photos
+    @latest_photos = Photo.find(:all, :order => "ts DESC", :limit => 5)
   end
 end
