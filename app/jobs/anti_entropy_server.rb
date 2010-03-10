@@ -7,10 +7,20 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
     server = TCPServer.new(@tcp_port)
     loop do
       client = server.accept
-      handle_client(client)
+      begin
+        handle_client(client)
+      rescue => e
+        # This is here mostly for debugging. Not much can be done about an error
+        # at this point.
+        STDERR.puts "Client barfed all over us: #{e} -- #{e.message}"
+        STDERR.puts *e.backtrace
+      end
     end
   end
   
+  # Given a client (TCPSocket), sends all log entries the client is missing
+  # based on the client's version vector, then closes the socket. Any multitude
+  # of errors may be thrown, all of them fatal.
   def handle_client(client)
     client_vector = get_vector(client)
     begin
@@ -20,14 +30,10 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
       else
         send_ack(client, :error, :message => "Invalid log vector.")
       end
-    rescue => e
-      # If we've gotten here, chances are we've either got a bug (in which case
-      # we're going to kill the app and find it) or the connection died. Print
-      # info and drop this client.
-      STDERR.puts "Experienced error while trying to handle client: #{e}"
-      STDERR.puts *e.backtrace[0...15]
+    ensure
+      # This ensures the connection is closed even if an exception is raised.
+      client.close
     end
-    client.close
   end
   
   # Waits for the client to send the vector across the wire, does some basic
