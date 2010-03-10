@@ -8,4 +8,6 @@ require File.join(File.dirname(__FILE__), 'boot')
 
 Rails::Initializer.run do |config|
   config.gem 'uuid'
+
+  require 'lib/string_extensions'
 end

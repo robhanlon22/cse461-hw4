@@ -1,6 +1,7 @@
 class Log < ActiveRecord::Base
   DEFAULT_JSON_FIELDS = [:OP, :TYPE, :UID, :TS, :OUID]
   UUID_FORMAT = /\w{8}-(?:\w{4}-){3}\w{12}/
+  VECTOR_SELECTOR = {:select => 'UID, TS, MAX(TS)', :group => 'UID'}
 
   column_names.each do |attr|
     alias_attribute attr.downcase, attr unless attr == 'id'
@@ -18,6 +19,13 @@ class Log < ActiveRecord::Base
                             :allow_nil => true
 
   alias_method :to_json_old, :to_json
+
+  def self.get_version_vector
+    all(VECTOR_SELECTOR).inject({}) { |memo, entry|
+      memo[entry.uid] = entry.ts.to_i.to_s
+      memo
+    }.to_json
+  end
 
   def to_json
     if write?
