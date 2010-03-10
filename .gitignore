@@ -1,5 +1,6 @@
 *~
 log
-db/*.sqlite3
+*.sqlite3
 config/database.yml
 *.sw?
+.*-uuid

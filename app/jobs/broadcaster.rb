@@ -1,14 +1,20 @@
 require 'socket'
+require 'activesupport'
 
-Broadcaster = Struct.new(:tcp_port) do
+Broadcaster = Struct.new(:tcp_port, :logger) do
   def perform
+    @logger.info("Opening UDP socket")
     sock = UDPSocket.new
     sock.setsockopt(Socket::SOL_SOCKET, Socket::SO_BROADCAST, true)
-    loop do
-      sock.send("flickr #{@tcp_port}", 0, '<broadcast>', 30000)
-      sleep 5
-    end
-  rescue
-    Delayed::Job.enqueue(Broadcaster.new(@tcp_port))
+    @logger.info("Opened UDP socket")
+    @logger.info("Broadcasting flickr #{@tcp_port}")
+    sock.send("flickr #{@tcp_port}", 0, '<broadcast>', 30000)
+  rescue Exception => e
+    @logger.warn(e)
+  ensure
+    sock.close
+    @logger.info("Sleeping for 5 seconds")
+    sleep 5
+    Delayed::Job.enqueue(new(@tcp_port, @logger))
   end
 end
