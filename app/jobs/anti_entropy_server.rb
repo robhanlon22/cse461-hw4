@@ -1,8 +1,8 @@
 require 'socket'
 
-AntiEntropyServerJob = Struct.new(:tcp_port) do
-  include CommonStuff
-  
+AntiEntropyServer = Struct.new(:tcp_port) do
+  include Elmo
+
   def perform
     server = TCPServer.new(@tcp_port)
     loop do
@@ -35,12 +35,12 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
       client.close
     end
   end
-  
+
   # Waits for the client to send the vector across the wire, does some basic
   # validation. Returns a Ruby hash object (parsed from the JSON) if the vector
   # was valid, nil otherwise.
   def get_vector(client)
-    # Wait at most 5 seconds to receive a client's vector before 
+    # Wait at most 5 seconds to receive a client's vector before
     client_vector = nil
     begin
       Timeout::timeout(5) do
@@ -50,14 +50,14 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
         while (next_char = client.getc.chr) != ":"
           byte_length << next_char
         end
-        
+
         # Convert from number string to integer
         byte_length = byte_length.to_i
-        
+
         # Read the vector data off the socket
         client_vector = client.read(byte_length)
       end
-      
+
       # Now try to parse JSON
       client_vector = Yajl::Parser.parse(client_vector)
     rescue Timeout::Error, Yajl::ParseError
@@ -65,27 +65,27 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
       client_vector = nil
     end
   end
-  
+
   # Based on the client's vector, determines what log entries are missing on
   # the client's side and delivers them to the given client.
   def send_missing_logs(client, client_vector)
     missing_logs = get_missing_logs(client_vector)
-    
+
     # For each missing log, convert to json and send, then wait for ack.
     missing_logs.each do |log|
       log_json = log.to_json.prefix_with_length!
       client.write(log_json)
-      
+
       wait_for_ack(client)
     end
   end
-  
+
   # Given the client's version vector, returns an array of all of the Log entries
   # which the client is ostensibly missing, sorted globally by timestamp.
   def get_missing_logs(client_vector)
     missing_logs = []
     local_vector = Log.get_version_vector
-    
+
     local_vector.each do |uuid, timestamp|
       # If the client has no info for this UUID, or if it is out of date...
       if client_vector[uuid].nil? or client_vector[uuid] < timestamp
@@ -96,10 +96,10 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
         missing_logs = merge_sorted_log_lists(missing_logs, logs_for_uuid)
       end
     end
-    
+
     return missing_logs
   end
-  
+
   # Given two lists of Log entries, each sorted by increasing timestamp, returns
   # the sorted combination of the two lists (neither list is modified).
   def merge_sorted_log_lists(first, second)
@@ -112,7 +112,7 @@ AntiEntropyServerJob = Struct.new(:tcp_port) do
       merged_list = Array.new(first.size + second.size, nil)
       first_index = 0
       second_index = 0
-      
+
       # For each space in the final list, chooses the lowest-timestamp'd
       # Log that has yet to be chosen from either list.
       merged_list.map! do |log|
