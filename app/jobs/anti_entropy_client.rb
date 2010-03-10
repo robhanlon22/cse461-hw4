@@ -1,17 +1,21 @@
 require 'socket'
 require 'yajl'
-require 'activesupport'
 
 AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   include Elmo
 
   def perform
-    sock = TCPSocket.new(@server_addr, @tcp_port)
-    send_version_vector(sock)
-    wait_for_ack(sock)
-    raw_logs = grab_raw_logs(sock)
-    log_hashes = split_logs(raw_logs)
-    Log.add_logs(log_hashes)
+    sock = nil
+    begin
+      sock = TCPSocket.new(server_addr, tcp_port)
+      send_version_vector(sock)
+      wait_for_ack(sock)
+      raw_logs = grab_raw_logs(sock)
+      log_hashes = split_logs(raw_logs)
+      Log.add_logs(log_hashes)
+    ensure
+      sock.close rescue Exception
+    end
   end
 
   private

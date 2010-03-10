@@ -1,24 +1,34 @@
 require 'socket'
-require 'activesupport'
 
 AntiEntropyServer = Struct.new(:tcp_port) do
   include Elmo
+
+  def logger
+    Delayed::Worker.logger
+  end
+
   def perform
-    logger.info("Starting TCP server on port #{@tcp_port}")
-    server = TCPServer.new(@tcp_port)
-    client = server.accept
-    logger.info("Accepted client")
+    server = nil
     begin
-      handle_client(client)
-    rescue Exception => e
-      # This is here mostly for debugging. Not much can be done about an error
-      # at this point.
-      STDERR.puts "Client barfed all over us: #{e} -- #{e.message}"
-      STDERR.puts *e.backtrace
+      Timeout.timeout(10) do
+        logger.info("Starting TCP server on port #{tcp_port}")
+        server = TCPServer.new(tcp_port)
+        client = server.accept
+        logger.info("Accepted client")
+        begin
+          handle_client(client)
+        rescue Exception => e
+          # This is here mostly for debugging. Not much can be done about an error
+          # at this point.
+          STDERR.puts "Client barfed all over us: #{e} -- #{e.message}"
+          STDERR.puts *e.backtrace
+        end
+      end
+    ensure
+      server.close rescue Exception
+      sleep 5
+      Delayed::Job.enqueue(AntiEntropyServer.new(tcp_port))
     end
-  ensure
-    server.close
-    Delayed::Job.enqueue(new(@tcp_port))
   end
 
   # Given a client (TCPSocket), sends all log entries the client is missing

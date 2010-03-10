@@ -1,5 +1,4 @@
 module Elmo
-
   # Send an ACK to the given socket. Times out after 5 seconds, in which case
   # a Timeout::Error is raised. Possible options for last parameter:
   #
@@ -19,7 +18,7 @@ module Elmo
     ack[:FLG] = ack[:FLG].to_s.upcase if ack[:FLG]
 
     ack_json = Yajl::Encoder.encode(ack).prefix_with_length!
-    
+
     Timeout::timeout(5) do
       socket.write(ack_json)
     end
