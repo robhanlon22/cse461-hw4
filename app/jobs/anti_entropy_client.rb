@@ -2,27 +2,31 @@ require 'socket'
 require 'yajl'
 
 AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
-  ACK = Yajl::Encoder.encode({"OP" => "ACK"}).prefix_with_length!
+  include Elmo
 
   def perform
-    @sock = TCPSocket.new(@server_addr, @tcp_port)
-    @sock.write(Log.get_version_vector.prefix_with_length!)
-
-    wait_for_ack
-
-    raw_logs = grab_raw_logs
+    sock = TCPSocket.new(@server_addr, @tcp_port)
+    send_version_vector(sock)
+    wait_for_ack(sock)
+    raw_logs = grab_raw_logs(sock)
     log_hashes = split_logs(raw_logs)
-
     Log.add_logs(log_hashes)
   end
 
   private
-  def grab_raw_logs
+  def send_version_vector(sock, t = 5)
+    version_vector = Log.get_version_vector
+    Timeout.timeout(t) { sock.write(version_vector.prefix_with_length!) }
+  end
+
+  def grab_raw_logs(sock, t = 5)
     raw_logs = ""
-    until @sock.eof?
-      length = @sock.read_length_field
-      raw_logs << @sock.read(length)
-      send_ack
+    until sock.eof?
+      Timeout.timeout(t) do
+        length = sock.read_length_field
+        raw_logs << sock.read(length)
+      end
+      send_ack(sock)
     end
     raw_logs
   end
@@ -35,20 +39,5 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
       log_hashes << Yajl::Parser.parse(io.read(length))
     end
     log_hashes
-  end
-
-  def wait_for_ack
-    until @sock.eof?
-      length = @sock.read_length_field
-      ack = Yajl::Parser.parse(@sock.read(length))
-
-      next unless ack["OP"] == "ACK"
-      abort ack["MSG"] if ack["FLG"] == "ERROR"
-      break
-    end
-  end
-
-  def send_ack
-    @sock.write(ACK)
   end
 end
