@@ -9,8 +9,15 @@ RAILS_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH.unshift(RAILS_ROOT)
 
 require 'vendor/plugins/delayed_job_spawner/lib/delayed_job_spawner'
-require 'config/environment'
-require 'config/jobs'
+
+if ARGV.first == 'stop' or ARGV.first == 'restart'
+  system("cd #{RAILS_ROOT} && rake jobs:clear")
+end
+
+if ARGV.first == 'start' or ARGV.first == 'restart'
+  require 'config/environment'
+  require 'config/jobs'
+end
 
 DelayedJobSpawner.spawn!(
   :log_file => "#{RAILS_ROOT}/log/delayed_job_spawner.log",
