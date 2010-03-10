@@ -90,49 +90,19 @@ AntiEntropyServer = Struct.new(:tcp_port) do
       # If the client has no info for this UUID, or if it is out of date...
       if client_vector[uuid].nil? or client_vector[uuid] < timestamp
         client_ts = client_vector[uuid] || 0
-        logs_for_uuid += Log.find(:all,
-                                  :conditions => ["UUID = ? AND TS > ?", uuid, client_ts],
-                                  :order => "TS ASC")
-        missing_logs = merge_sorted_log_lists(missing_logs, logs_for_uuid)
+        missing_logs += Log.find(:all,
+                                 :conditions => ["UUID = ? AND TS > ?", uuid, client_ts],
+                                 :order => "TS ASC")
       end
     end
-
-    return missing_logs
-  end
-
-  # Given two lists of Log entries, each sorted by increasing timestamp, returns
-  # the sorted combination of the two lists (neither list is modified).
-  def merge_sorted_log_lists(first, second)
-    if first.empty?
-      return second
-    elsif second.empty?
-      return first
-    else
-      # creates a new list of size (first+second) filled with nil
-      merged_list = Array.new(first.size + second.size, nil)
-      first_index = 0
-      second_index = 0
-
-      # For each space in the final list, chooses the lowest-timestamp'd
-      # Log that has yet to be chosen from either list.
-      merged_list.map! do |log|
-        if first_index < first.length and second_index < second.length
-          if first[first_index].ts < second[second_index].ts
-            log_to_use = first[first_index]
-            first_index += 1
-          else
-            log_to_use = second[second_index]
-            second_index += 1
-          end
-        elsif first_index >= first.length
-          log_to_use = second[second_index]
-          second_index += 1
-        else
-          log_to_use = first[first_index]
-          first_index += 1
-        end
-        log_to_use
-      end
+    
+    # Sort all missing logs by timestamp, breaking ties by OUID
+    missing_logs.sort! do |a, b|
+      if a.ts == b.ts
+        a.ouid <=> b.ouid
+      else
+        a.ts <=> b.ts
+      end      
     end
   end
 end
