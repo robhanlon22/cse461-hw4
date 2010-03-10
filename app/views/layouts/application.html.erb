@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <title>P2Plickr | <%= @page_title || "GIVE ME A TITLE!" %></title>
+  <%= stylesheet_link_tag "style" %>
+</head>
+
+<body>
+  <div id="wrapper">
+
+  	<div id="header">
+  		<h1>P2Plickr</h1>
+  	</div>
+
+  	<div id="menu">
+  		<ul>
+  			<li><%= link_to "Home", { :action => :index } %></li>
+  			<li><%= link_to "All Photos", { :action => :list } %></li>
+  			<li><%= link_to "Add Photo", { :action => :new } %></li>
+  		</ul>
+  	</div>
+
+  	<div id="sidebar">
+  		<div id="feed">
+  			Latest Photos
+  		</div>
+  		<ul>
+  			<li><a href="#">Put something here...</a></li>
+  		</ul>
+  		<div id="sidebar-bottom">
+  			&nbsp;
+  		</div>
+  	</div>
+
+  	<div id="content">
+  	  <%= render :partial => "shared/flash", :object => flash %>
+  	  <%= yield %>
+  	</div>
+
+  	<div id="footer">
+  		<div id="footer-valid">
+  			&copy; 2010, The Weird Shower
+  		</div>
+  	</div>
+
+  </div>
+</body>
+</html>

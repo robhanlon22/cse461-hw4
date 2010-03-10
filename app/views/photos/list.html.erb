@@ -1,0 +1,18 @@
+<% if @photos.empty? -%>
+	<div class="entry">
+		<div class="entry-title">There are no photos to display</div>
+		<div class="date">...none at all.</div>
+		<p>
+		  Don't you get it?
+		  No photos have been added<%= " by instance #{@instance_uuid}" if @instance_uuid %>!
+		</p>
+		<div class="comments">Nothing else to see here...</div>
+	</div>
+<% else -%>
+  <% for photo in @photos -%>
+    <%= render :partial => "photo", :object => photo %>
+  <% end -%>
+  <p>
+    TODO: ADD A +PHOTO BUTTON/LINK HERE!
+  </p>
+<% end -%>

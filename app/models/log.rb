@@ -18,6 +18,14 @@ class Log < ActiveRecord::Base
                             :allow_nil => true
 
   alias_method :to_json_old, :to_json
+  
+  # Based on all of the known timestamps in the log, as well as the current
+  # local time, returns the timestamp value (a Time object, not an integer) that
+  # should be used for a new action.
+  def self.next_timestamp
+    max_ts = Log.maximum('TS')
+    Time.at(([max_ts.to_i, Time.now.to_i].max) + 1)
+  end
 
   def self.add_logs(log_hashes)
     Log.transaction do
@@ -62,6 +70,44 @@ class Log < ActiveRecord::Base
       memo[entry.uid] = entry.ts.to_i.to_s
       memo
     }.to_json
+  end
+  
+  def self.for_comment(comment)
+    Log.new(:OP   => "WRITE",
+            :TYPE => "COMMENT",
+            :TS   => comment.ts,
+            :UID  => comment.uid,
+            :PUID => comment.puid,
+            :OUID => comment.oid,
+            :data => comment.text)
+  end
+  
+  # Auto-generates the next available timestamp
+  def self.for_comment_delete(comment, instance_uuid=APP_UUID)
+    Log.new(:OP   => "DELETE",
+            :TYPE => "COMMENT",
+            :UID  => comment.uid,
+            :TS   => next_timestamp,
+            :OUID => instance_uuid)
+  end
+  
+  def self.for_photo(photo)
+    raise RuntimeError.new("FINISH IMPLEMENTING THIS!")
+    Log.new(:OP   => "WRITE",
+            :TYPE => "PHOTO",
+            :TS   => photo.ts,
+            :UID  => photo.uid,
+            :OUID => photo.oid,
+            :DATA => nil) # <====== figure out the data bit
+  end
+  
+  # Auto-generates the next available timestamp
+  def self.for_photo_delete(photo, instance_uuid=APP_UUID)
+    Log.new(:OP   => "DELETE",
+            :TYPE => "PHOTO",
+            :UID  => photo.uid,
+            :TS   => next_timestamp,
+            :OUID => instance_uuid)
   end
 
   def to_json

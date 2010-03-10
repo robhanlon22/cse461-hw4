@@ -1,0 +1,29 @@
+<div class="entry">
+	<div class="entry-title">Welcome</div>
+	<div class="date">To a P2P experience from hell...</div>
+	<p>
+    P2Plickr is a
+    semi-<a href="http://www2.parc.com/csl/projects/bayou/pubs/sosp-97/paper.html">Bayou</a>-based
+    peer-to-peer (P2P) photo and comment sharing application. Use at your own
+    risk.
+  </p>
+</div>
+<div class="entry">
+	<div class="entry-title">All known instances</div>
+	<div class="date">Browse photos by instance</div>
+	<p>
+    The following are the UUIDs for all application instances that have posted
+    photos. Click on a UUID to see the photos associated with that instance.
+  </p>
+  <ul class="link_list">
+    <% if @instances.empty? -%>
+      <li>No known instances have posted photos.</li>
+    <% else -%>
+      <% for instance in @instances -%>
+        <li>
+          <%= link_to instance, { :aciton => :list, :uuid => instance } %>
+        </li>
+      <% end -%>
+    <% end -%>
+  </ul>
+</div>

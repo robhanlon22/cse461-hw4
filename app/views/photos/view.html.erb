@@ -1,0 +1,31 @@
+<div class="entry">
+	<div class="entry-title">Photo: <%= @photo.uid %></div>
+	<div class="date">Posted at timestamp <%= @photo.ts.to_i %></div>
+	<div class="comments">
+    <%= @comments.size, "comment") %>
+	</div>
+</div>
+
+<%= image_tag @photo.image_file_name, :class => "full" %>
+
+<div class="entry">
+  <div class="entry-title">Comments</div>
+  <div class="date"><%= @comments.size, "comments") %></div>
+  <div class="comment_form">
+    <% form_for :comment, :url => { :action => :save_comment } do |form| %>
+      <%= form.hidden_field :puid, :value => @photo.uid %>
+      <label for="comment_text">Add a comment:</label>
+      <%= form.text_area :text %>
+      <%= submit_tag "Post it!" %>
+    <% end -%>
+  </div>
+  <ul class="comment_list">
+    <% if @comments.empty? -%>
+      <li>No comments for this photo</li>
+    <% else -%>
+      <% for comment in @comments -%>
+        <%= render :partial => "comment", :object => comment %>
+      <% end -%>
+    <% end -%>
+  </ul>
+</div>

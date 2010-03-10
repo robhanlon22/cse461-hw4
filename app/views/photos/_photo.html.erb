@@ -1,0 +1,10 @@
+<div class="entry">
+	<div class="entry-title">
+	  <%= link_to "Photo #{photo.uid}", { :action => :view, :uuid => photo.uid } %>
+	</div>
+	<div class="date">Posted at timestamp <%= photo.ts %></div>
+	<%= image_tag photo.image_file_name, :class => "thumbnail" %>
+	<div class="comments">
+    <%= pluralize(comments_for_photo(photo), "comment") %>
+	</div>
+</div>
