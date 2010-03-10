@@ -20,6 +20,40 @@ class Log < ActiveRecord::Base
 
   alias_method :to_json_old, :to_json
 
+  def self.add_logs(log_hashes)
+    log_hashes.each do |log_hash|
+      log = new(log_hash)
+      log.ts = Time.at(log.ts.to_i)
+      log.save!
+    end
+  end
+
+  def self.replay
+    ActiveRecord::Base.transaction do
+      Photo.destroy_all
+      Comment.destroy_all
+
+      Log.all(:order => 'TS ASC').each do |log|
+        if log.write?
+          e = nil
+          if log.photo?
+            data = Base64.decode64(log.data)
+            e = Photo.new
+            e.image = data
+          else # comment
+            e.puid = log.puid
+            e.text = log.data
+          end
+          e.ts = log.ts
+          e.uid = log.uid
+          e.ouid = log.ouid
+        else
+          (log.photo? ? Photo : Comment).find_by_uid(log.uid).destroy
+        end
+      end
+    end
+  end
+
   def self.get_version_vector
     all(VECTOR_SELECTOR).inject({}) { |memo, entry|
       memo[entry.uid] = entry.ts.to_i.to_s
