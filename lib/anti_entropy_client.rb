@@ -2,6 +2,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   include Elmo
 
   def run
+    logger.info("#{self.class}: started, opening TCP socket to #{server_addr}:#{tcp_port}")
     sock = TCPSocket.new(server_addr, tcp_port)
     send_version_vector(sock)
     wait_for_ack(sock)
@@ -17,12 +18,12 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
 
   def send_version_vector(sock, t = 5)
     version_vector = Log.get_version_vector
-    logger.info("Sending version vector #{version_vector}")
+    logger.info("#{self.class}: sending version vector #{version_vector}")
     Timeout.timeout(t) { sock.write(version_vector.prefix_with_length!) }
   end
 
   def grab_raw_logs(sock, t = 5)
-    logger.info("Grabbing raw logs")
+    logger.info("#{self.class}: rabbing raw logs...")
     raw_logs = ""
     until sock.eof?
       Timeout.timeout(t) do
@@ -31,7 +32,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
       end
       send_ack(sock)
     end
-    logger.info("Raw logs are #{raw_logs}")
+    logger.info("#{self.class}: raw logs are #{raw_logs}")
     raw_logs
   end
 

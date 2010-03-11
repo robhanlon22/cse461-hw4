@@ -10,7 +10,7 @@ module Elmo
     allowed_opts = [ :FLG, :MSG ]
 
     opts.each_key do |option|
-      unless allowed_opts.contains?(option)
+      unless allowed_opts.include? option
         raise ArgumentError.new("Illegal ACK option given: '#{option}'")
       end
     end

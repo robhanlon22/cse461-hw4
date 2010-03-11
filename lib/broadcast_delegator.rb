@@ -13,8 +13,9 @@ class BroadcastDelegator
         logger.info("data was valid, starting anti-entropy client...")
         data = data.split
         Thread.new do
-          AntiEntropyClient.new(addr[2], data.last.to_i)
+          AntiEntropyClient.new(addr[2], data.last.to_i).run
         end
+        sleep 1
       end
     end
   end

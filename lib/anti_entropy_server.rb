@@ -2,18 +2,18 @@ AntiEntropyServer = Struct.new(:tcp_port) do
   include Elmo
 
   def run
-    logger.info("Starting TCP server on port #{tcp_port}")
+    logger.info("#{self.class}: starting TCP server on port #{tcp_port}")
     server = TCPServer.new(tcp_port)
     loop do
       client = server.accept
-      logger.info("Accepted client")
+      logger.info("#{self.class}: accepted client")
       begin
         handle_client(client)
       rescue Exception => e
         # This is here mostly for debugging. Not much can be done about an error
         # at this point.
-        logger.warn("Client barfed all over us: #{e} -- #{e.message}")
-        logger.warn(*e.backtrace)
+        logger.warn("#{self.class}: client barfed all over us: #{e} -- #{e.message}")
+        logger.warn("#{self.class}: #{e.backtrace * "\n"}")
       end
     end
   end
@@ -28,14 +28,14 @@ AntiEntropyServer = Struct.new(:tcp_port) do
   # of errors may be thrown, all of them fatal.
   def handle_client(client)
     client_vector = get_vector(client)
-    logger.info("Got client's version vector: #{client_vector}")
+    logger.info("#{self.class}: got client's version vector: #{client_vector}")
     if client_vector
       logger.info("ACK")
-      send_ack(client, :success)
-      logger.info("Sending missing logs...")
+      send_ack(client, :FLG => :success)
+      logger.info("#{self.class}: ending missing logs...")
       send_missing_logs(client, client_vector)
     else
-      send_ack(client, :error, :message => "Invalid log vector.")
+      send_ack(client, :FLG => :error, :MSG => "Invalid log vector.")
     end
   ensure
     # This ensures the connection is closed even if an exception is raised.
@@ -88,8 +88,8 @@ AntiEntropyServer = Struct.new(:tcp_port) do
       # If the client has no info for this UUID, or if it is out of date...
       if client_vector[uuid].nil? or client_vector[uuid] < timestamp
         client_ts = client_vector[uuid] || 0
-        missing_logs += Log.find(:all,
-                                 :conditions => ["UUID = ? AND TS > ?", uuid, client_ts],
+        missing_logs << Log.find(:all,
+                                 :conditions => ["UID = ? AND TS > ?", uuid, client_ts],
                                  :order => "TS ASC")
       end
     end
