@@ -69,7 +69,7 @@ class Log < ActiveRecord::Base
     all(VECTOR_SELECTOR).inject({}) { |memo, entry|
       memo[entry.uid] = entry.ts.to_i.to_s
       memo
-    }.to_json
+    }
   end
   
   def self.for_comment(comment)
