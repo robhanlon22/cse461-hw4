@@ -207,6 +207,11 @@ a:hover.feed-button {
 
 /* Extra's */
 
+.delete_link {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
 #ad-top {
 	width:480px;
 	height:72px;

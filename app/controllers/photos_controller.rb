@@ -4,6 +4,12 @@ class PhotosController < ApplicationController
                                                 :view,
                                                 :new ]
   
+  verify :method => :post, :only => [ :create,
+                                      :destroy,
+                                      :save_comment,
+                                      :delete_comment ],
+    :redirect_to => { :action => :index }
+  
   def index
     @page_title = "Welcome"
     
@@ -78,7 +84,31 @@ class PhotosController < ApplicationController
   end
 
   def destroy
-    @page_title = "Not implemented yet..."
+    if params[:id].nil?
+      logger.error("Attempt to delete a photo without specifying its ID.")
+      redirect_to( :action => :index ) and return
+    end
+    
+    photo = Photo.find_by_id(params[:id])
+    if photo
+      log_entry = Log.for_photo_delete(photo)
+      begin
+        Log.transaction do
+          photo.destroy
+          log_entry.save!
+        end
+        
+        flash[:notice] = "Photo was deleted succesffully."
+        redirect_to( :back ) and return
+      rescue => e
+        logger.error("Attempt to delete photo failed: #{e} -- #{e.message}")
+        flash[:error] = "Failed to delete photo."
+        redirect_to( :back ) and return
+      end
+    else
+      logger.error("Attempt to delete photo with bogus ID: #{params[:id]}")
+      redirect_to( :action => :index ) and return
+    end
   end
 
   def save_comment
@@ -113,7 +143,7 @@ class PhotosController < ApplicationController
       end  
       redirect_to( :back ) and return
     else
-      logger.error("Attempt to post a comment with bogus (or unknown) UUID.")
+      logger.error("Attempt to post a comment with bogus (or unknown) photo UUID: #{params[:comment][:puid]}")
       redirect_to( :action => :index ) and return
     end
   end
@@ -141,7 +171,7 @@ class PhotosController < ApplicationController
       end
       redirect_to( :back ) and return
     else
-      logger.error("Attempted deletion of comment with bogus (or unknown) UUID.")
+      logger.error("Attempted deletion of comment with bogus (or unknown) ID: #{params[:id]}")
       redirect_to( :action => :index ) and return
     end
   end
