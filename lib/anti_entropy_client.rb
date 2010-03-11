@@ -4,7 +4,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   def run
     logger.info("#{self.class}-#{self.object_id}: started, opening TCP socket to #{server_addr}:#{tcp_port}")
     sock = TCPSocket.new(server_addr, tcp_port)
-    
+
     send_version_vector(sock)
     logger.info("#{self.class}-#{self.object_id}: about to wait for an ACK of version vector")
     wait_for_ack(sock, 5, logger)
@@ -27,13 +27,13 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
     RAILS_DEFAULT_LOGGER
   end
 
-  def send_version_vector(sock, t = 5)
+  def send_version_vector(sock, t = 10)
     version_vector = Log.get_version_vector.to_json
     logger.info("#{self.class}-#{self.object_id}: sending version vector #{version_vector}")
     Timeout.timeout(t) { sock.write(version_vector.prefix_with_length!) }
   end
 
-  def grab_raw_logs(sock, t = 5)
+  def grab_raw_logs(sock, t = 10)
     logger.info("#{self.class}-#{self.object_id}: grabbing raw logs...")
     raw_logs = []
     until sock.eof?
