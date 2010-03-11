@@ -16,6 +16,10 @@ class Log < ActiveRecord::Base
   validates_format_of       :PUID,
                             :with => UUID_FORMAT,
                             :allow_nil => true
+                            
+  # Ensures that no two log entries can have the same timestamp and origin UUID
+  validates_uniqueness_of   :TS,
+                            :scope => :OUID
 
   alias_method :to_json_old, :to_json
   
@@ -24,7 +28,7 @@ class Log < ActiveRecord::Base
   # should be used for a new action.
   def self.next_timestamp
     max_ts = Log.maximum('TS')
-    Time.at(([max_ts.to_i, Time.now.to_i].max) + 1)
+    [max_ts, Time.now].max + 1
   end
 
   def self.add_logs(log_hashes)
@@ -32,7 +36,11 @@ class Log < ActiveRecord::Base
       log_hashes.each do |log_hash|
         log = new(log_hash)
         log.ts = Time.at(log.ts.to_i)
-        log.save
+        
+        # Ensure that we never admit duplicate logs!
+        if log.valid?
+          log.save!
+        end
       end
     end
   end
