@@ -1,6 +1,9 @@
 <div class="entry">
 	<div class="entry-title">Photo: <%= @photo.uid %></div>
 	<div class="date">Posted at timestamp <%= @photo.ts.to_i %></div>
+	<p>
+	  Added by instance: <%= @photo.ouid %>
+	</p>
 	<div class="comments">
     <%= pluralize(@comments.size, "comment") %>
 	</div>
