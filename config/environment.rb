@@ -24,14 +24,16 @@ Rails::Initializer.run do |config|
   require 'socket'
 end
 
-Thread.new do
-  BroadcastDelegator.new.run
-end
+unless $0 == 'script/console' or $0 == 'irb'
+  Thread.new do
+    BroadcastDelegator.new.run
+  end
 
-Thread.new do
-  Broadcaster.new(PORT).run
-end
+  Thread.new do
+    Broadcaster.new(PORT).run
+  end
 
-Thread.new do
-  AntiEntropyServer.new(PORT).run
+  Thread.new do
+    AntiEntropyServer.new(PORT).run
+  end
 end

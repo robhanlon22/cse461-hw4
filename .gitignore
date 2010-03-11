@@ -5,3 +5,4 @@ config/database.yml
 *.sw?
 .*-uuid
 *DS_Store
+public/system/images
