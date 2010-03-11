@@ -119,13 +119,14 @@ class PhotosController < ApplicationController
   end
 
   def delete_comment
-    if params[:uuid].nil?
-      logger.error("Attempted deletion of a comment without specifying uuid.")
+    # We use ID because UUIDs can't be used in JavaScript variable names (hyphens)
+    if params[:id].nil?
+      logger.error("Attempted deletion of a comment without specifying id.")
       redirect_to( :action => :index ) and return
     end
     
     # TODO: DECIDE ON A DELETION POLICY! CAN X DELETE Y's STUFF?
-    comment = Comment.find_by_uid(params[:uuid])
+    comment = Comment.find_by_id(params[:id])
     if comment
       log_entry = Log.for_comment_delete(comment)
       begin

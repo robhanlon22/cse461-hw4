@@ -1,6 +1,4 @@
-<p>
-  TODO: ADD A +PHOTO BUTTON/LINK HERE!
-</p>
+<%= render :partial => "add_photo_link" %>
 <% if @photos.empty? -%>
 	<div class="entry">
 		<div class="entry-title">There are no photos to display</div>
@@ -16,7 +14,4 @@
     <%= render :partial => "photo", :object => photo %>
   <% end -%>
 <% end -%>
-
-<p>
-  TODO: ADD A +PHOTO BUTTON/LINK HERE!
-</p>
+<%= render :partial => "add_photo_link" %>

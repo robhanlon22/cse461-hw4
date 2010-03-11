@@ -1,6 +1,6 @@
 <div class="entry">
 	<div class="entry-title">
-	  <%= link_to "Photo #{photo.uid}", { :action => :view, :uuid => photo.uid } %>
+	  <%= link_to "Photo #{truncate(photo.uid, 20)}", { :action => :view, :uuid => photo.uid } %>
 	</div>
 	<div class="date">Posted at timestamp <%= photo.ts.to_i %></div>
 	<%= link_to image_tag(photo.image.url, :class => "thumbnail"), { :action => :view, :uuid => photo.uid } %>

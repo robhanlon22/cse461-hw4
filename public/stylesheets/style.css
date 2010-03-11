@@ -286,3 +286,30 @@ form input[type="hidden"] {
     margin-left: 10px;
     margin-bottom: 10px;
   }
+  
+.flash_msg {
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+  .flash_msg p {
+    border: 1px solid;
+    padding: 5px;
+    font-weight: bold;
+  }
+
+  .flash_msg .error {
+    border-color: red;
+    color: red;
+    background: #fa9;
+  }
+  
+  .flash_msg .notice {
+    border-color: green;
+    color: green;
+    background: #aea;
+  }
+  
+.add_photo {
+  margin: 10px 0px 10px 10px;
+  font-weight: bold;
+}

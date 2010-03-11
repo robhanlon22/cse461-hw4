@@ -1,0 +1,6 @@
+<% if params[:uuid].nil? or params[:uuid] == APP_UUID -%>
+  <div class="add_photo">
+    <% link_text = "#{icon(:add, :size => 16, :shadow => false)} Add a photo" %>
+    <%= link_to link_text, { :action => :new } %>
+  </div>
+<% end -%>
