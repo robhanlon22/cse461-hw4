@@ -1,11 +1,12 @@
 <div class="entry">
 	<div class="entry-title">Add a new photo</div>
 	<div class="date">...and see what happens</div>
-	<form action="<%= url_for :action => :create %>" method="post">
+	<% form_for :photo, :url => { :action => :create },
+	                    :html => { :multipart => true } do |form| %>
 	  <label for="image_file">Image to upload:</label>
-	  <input type="file" name="image_file" id="image_file" />
+	  <%= form.file_field :image %>
 	  
 	  <br /><br />
-	  <input type="submit" value="Send it in!" />
-	</form>
+    <%= submit_tag "Post it up!" %>
+	<% end -%>
 </div>

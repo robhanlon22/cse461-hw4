@@ -4,7 +4,7 @@
 	<% else -%>
 	  <% for photo in latest_photos -%>
 	    <li>
-	      <%= link_to photo.uid, :action => :view, :uuid => photo.uid %>
+	      <%= link_to truncate(photo.uid, :length => 20), :action => :view, :uuid => photo.uid %>
 	    </li>
 	  <% end -%>
 	<% end -%>
