@@ -10,10 +10,26 @@ Rails::Initializer.run do |config|
   config.gem 'uuid'
   config.gem 'yajl-ruby', :lib => 'yajl'
 
-  require 'lib/string_extensions'
-  require 'lib/io_extensions'
   require 'lib/elmo'
+  require 'lib/io_extensions'
+  require 'lib/string_extensions'
+
+  require 'lib/anti_entropy_client'
+  require 'lib/anti_entropy_server'
+  require 'lib/broadcast_delegator'
+  require 'lib/broadcaster'
 
   require 'socket'
 end
 
+Thread.new do
+  BroadcastDelegator.new.run
+end
+
+Thread.new do
+  Broadcaster.new(PORT).run
+end
+
+Thread.new do
+  AntiEntropyServer.new(PORT).run
+end

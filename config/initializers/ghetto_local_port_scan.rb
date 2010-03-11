@@ -1,3 +1,4 @@
+=begin
 require 'socket'
 require 'timeout'
 
@@ -20,3 +21,6 @@ unless defined? PORT
     end
   end
 end
+=end
+
+PORT = 31827 unless defined? PORT
