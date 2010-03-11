@@ -39,7 +39,9 @@ module Elmo
       ack = Yajl::Parser.parse(socket.read(length))
     end
 
-    if ack["FLG"] == "ERROR"
+    # We do a case-insensitive comparison with success, in case they use funky
+    # codes for their errors.
+    unless ack["FLG"].casecmp("SUCCESS") != 0
       message = ack["MSG"] || "ACK ERROR contained no message."
       logger.info("#{self.class}-#{self.object_id}: ACK received indicates error: #{ack["MSG"]}")
       raise AckError.new(message)
