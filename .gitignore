@@ -4,4 +4,4 @@ log
 config/database.yml
 *.sw?
 .*-uuid
-public/images/icons
+public/system/images

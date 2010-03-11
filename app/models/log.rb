@@ -47,12 +47,12 @@ class Log < ActiveRecord::Base
           e = nil
           if log.photo?
             data = Base64.decode64(log.data)
-            e = Photo.new
-            e.image = data
+            sio = StringIO.new(data)
+            sio.original_filename = log.uid
+            e = Photo.new(:image => sio)
           else # comment
-            e = Comment.new
-            e.puid = log.puid
-            e.text = log.data
+            e = Comment.new(:puid => log.puid,
+                            :text => log.data)
           end
           e.ts = log.ts
           e.uid = log.uid

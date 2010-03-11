@@ -31,9 +31,11 @@ module Elmo
   # an AckError will be raised, and the exception's message will match the ACK's
   # message.
   def wait_for_ack(socket, timeout=5, logger = nil)
-    Timeout::timeout(timeout) do
+    ack = nil
+    logger.info("#{self.class}: waiting #{timeout} secs for an ACK")
+    Timeout.timeout(timeout) do
       length = socket.read_length_field
-      logger.log("#{self.class}: length is #{length}") if logger
+      logger.info("#{self.class}: length is #{length}") if logger
       ack = Yajl::Parser.parse(socket.read(length))
     end
 
