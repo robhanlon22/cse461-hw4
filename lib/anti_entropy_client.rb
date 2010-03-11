@@ -23,7 +23,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   end
 
   def grab_raw_logs(sock, t = 5)
-    logger.info("#{self.class}: rabbing raw logs...")
+    logger.info("#{self.class}: grabbing raw logs...")
     raw_logs = ""
     until sock.eof?
       Timeout.timeout(t) do

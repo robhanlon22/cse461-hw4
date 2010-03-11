@@ -30,9 +30,10 @@ module Elmo
   # is invalid, an ArgumentError will be raised. If the ACK indicates an error,
   # an AckError will be raised, and the exception's message will match the ACK's
   # message.
-  def wait_for_ack(socket, timeout=5)
+  def wait_for_ack(socket, timeout=5, logger = nil)
     Timeout::timeout(timeout) do
       length = socket.read_length_field
+      logger.log("#{self.class}: length is #{length}") if logger
       ack = Yajl::Parser.parse(socket.read(length))
     end
 

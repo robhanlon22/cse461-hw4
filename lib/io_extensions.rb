@@ -9,3 +9,4 @@ module IoExtensions
 end
 
 IO.__send__(:include, IoExtensions)
+StringIO.__send__(:include, IoExtensions)

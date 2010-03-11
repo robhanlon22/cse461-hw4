@@ -30,9 +30,9 @@ AntiEntropyServer = Struct.new(:tcp_port) do
     client_vector = get_vector(client)
     logger.info("#{self.class}: got client's version vector: #{client_vector}")
     if client_vector
-      logger.info("ACK")
+      logger.info("#{self.class}: ACKing version vector...")
       send_ack(client, :FLG => :success)
-      logger.info("#{self.class}: ending missing logs...")
+      logger.info("#{self.class}: sending missing logs...")
       send_missing_logs(client, client_vector)
     else
       send_ack(client, :FLG => :error, :MSG => "Invalid log vector.")
@@ -51,12 +51,7 @@ AntiEntropyServer = Struct.new(:tcp_port) do
     Timeout.timeout(5) do
       # Read the byte-length prefix off the front of the message, then try
       # to read that many bytes.
-      byte_length = ""
-      while (next_char = client.getc.chr) != ":"
-        byte_length << next_char
-      end
-      # Convert from number string to integer
-      byte_length = byte_length.to_i
+      byte_length = client.read_length_field
       # Read the vector data off the socket
       client_vector = client.read(byte_length)
     end
@@ -74,8 +69,10 @@ AntiEntropyServer = Struct.new(:tcp_port) do
     # For each missing log, convert to json and send, then wait for ack.
     missing_logs.each do |log|
       log_json = log.to_json.prefix_with_length!
+      logger.info("#{self.class}: about to send #{log_json}")
       client.write(log_json)
-      wait_for_ack(client)
+      logger.info("#{self.class}: waiting for ACK of #{log_json}")
+      wait_for_ack(client, 20, logger)
     end
   end
 
@@ -88,7 +85,7 @@ AntiEntropyServer = Struct.new(:tcp_port) do
       # If the client has no info for this UUID, or if it is out of date...
       if client_vector[uuid].nil? or client_vector[uuid] < timestamp
         client_ts = client_vector[uuid] || 0
-        missing_logs << Log.find(:all,
+        missing_logs += Log.find(:all,
                                  :conditions => ["UID = ? AND TS > ?", uuid, client_ts],
                                  :order => "TS ASC")
       end
