@@ -86,7 +86,7 @@ AntiEntropyServer = Struct.new(:tcp_port) do
       if client_vector[uuid].nil? or client_vector[uuid] < timestamp
         client_ts = client_vector[uuid] || 0
         missing_logs += Log.find(:all,
-                                 :conditions => ["UID = ? AND TS > ?", uuid, client_ts],
+                                 :conditions => ["OUID = ? AND TS > ?", uuid, client_ts],
                                  :order => "TS ASC")
       end
     end
