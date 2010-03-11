@@ -2,18 +2,24 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   include Elmo
 
   def run
-    logger.info("#{self.class}: started, opening TCP socket to #{server_addr}:#{tcp_port}")
+    logger.info("#{self.class}-#{self.object_id}: started, opening TCP socket to #{server_addr}:#{tcp_port}")
     sock = TCPSocket.new(server_addr, tcp_port)
+    
     send_version_vector(sock)
-    logger.info("#{self.class}: about to wait for an ACK of version vector")
+    logger.info("#{self.class}-#{self.object_id}: about to wait for an ACK of version vector")
     wait_for_ack(sock, 5, logger)
     raw_logs = grab_raw_logs(sock)
     log_hashes = split_logs(raw_logs)
-    Log.add_logs(log_hashes)
-    Log.replay
+    unless log_hashes.empty?
+      logger.info("#{self.class}-#{self.object_id}: Received #{log_hashes.size} logs to add.")
+      Log.add_logs(log_hashes)
+      Log.replay
+    else
+      logger.info("#{self.class}-#{self.object_id}: Server does not have any missing logs for us.")
+    end
   rescue Exception => e
-    logger.warn("#{self.class}: #{e} -- #{e.message}")
-    logger.warn("#{self.class}: #{e.backtrace * "\n"}")
+    logger.warn("#{self.class}-#{self.object_id}: #{e} -- #{e.message}")
+    logger.warn("#{self.class}-#{self.object_id}: #{e.backtrace * "\n"}")
   end
 
   private
@@ -23,12 +29,12 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
 
   def send_version_vector(sock, t = 5)
     version_vector = Log.get_version_vector.to_json
-    logger.info("#{self.class}: sending version vector #{version_vector}")
+    logger.info("#{self.class}-#{self.object_id}: sending version vector #{version_vector}")
     Timeout.timeout(t) { sock.write(version_vector.prefix_with_length!) }
   end
 
   def grab_raw_logs(sock, t = 5)
-    logger.info("#{self.class}: grabbing raw logs...")
+    logger.info("#{self.class}-#{self.object_id}: grabbing raw logs...")
     raw_logs = []
     until sock.eof?
       Timeout.timeout(t) do
@@ -37,7 +43,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
       end
       send_ack(sock)
     end
-    logger.info("#{self.class}: raw logs are #{raw_logs * "\n"}")
+    logger.info("#{self.class}-#{self.object_id}: raw logs are #{raw_logs * "\n"}")
     raw_logs
   end
 

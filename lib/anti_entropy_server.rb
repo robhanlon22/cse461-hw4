@@ -2,18 +2,18 @@ AntiEntropyServer = Struct.new(:tcp_port) do
   include Elmo
 
   def run
-    logger.info("#{self.class}: starting TCP server on port #{tcp_port}")
+    logger.info("#{self.class}-#{self.object_id}: starting TCP server on port #{tcp_port}")
     server = TCPServer.new(tcp_port)
     loop do
       client = server.accept
-      logger.info("#{self.class}: accepted client")
+      logger.info("#{self.class}-#{self.object_id}: accepted client")
       begin
         handle_client(client)
       rescue Exception => e
         # This is here mostly for debugging. Not much can be done about an error
         # at this point.
-        logger.warn("#{self.class}: client barfed all over us: #{e} -- #{e.message}")
-        logger.warn("#{self.class}: #{e.backtrace * "\n"}")
+        logger.warn("#{self.class}-#{self.object_id}: client barfed all over us: #{e} -- #{e.message}")
+        logger.warn("#{self.class}-#{self.object_id}: #{e.backtrace * "\n"}")
       end
     end
   end
@@ -28,14 +28,15 @@ AntiEntropyServer = Struct.new(:tcp_port) do
   # of errors may be thrown, all of them fatal.
   def handle_client(client)
     client_vector = get_vector(client)
-    logger.info("#{self.class}: got client's version vector: #{client_vector}")
+    logger.info("#{self.class}-#{self.object_id}: got client's version vector: #{client_vector.inspect}")
     if client_vector
-      logger.info("#{self.class}: ACKing version vector...")
+      logger.info("#{self.class}-#{self.object_id}: ACKing version vector...")
       send_ack(client, :FLG => :success)
-      logger.info("#{self.class}: sending missing logs...")
+      logger.info("#{self.class}-#{self.object_id}: sending missing logs...")
       send_missing_logs(client, client_vector)
     else
-      send_ack(client, :FLG => :error, :MSG => "Invalid log vector.")
+      logger.warn("#{self.class}-#{self.object_id}: Failed to get version vector from client")
+      send_ack(client, :FLG => :error, :MSG => "Invalid version vector.")
     end
   ensure
     # This ensures the connection is closed even if an exception is raised.
@@ -46,6 +47,7 @@ AntiEntropyServer = Struct.new(:tcp_port) do
   # validation. Returns a Ruby hash object (parsed from the JSON) if the vector
   # was valid, nil otherwise.
   def get_vector(client)
+    logger.info("#{self.class}-#{self.object_id}: Waiting for client's vector...")
     # Wait at most 5 seconds to receive a client's vector before
     client_vector = nil
     Timeout.timeout(5) do
@@ -56,10 +58,8 @@ AntiEntropyServer = Struct.new(:tcp_port) do
       client_vector = client.read(byte_length)
     end
     # Now try to parse JSON
+    logger.info("#{self.class}-#{self.object_id}: Received client vector: #{client_vector}")
     return Yajl::Parser.parse(client_vector)
-  rescue Timeout::Error, Yajl::ParseError
-    # Either the client timed out, or their vector was poorly formatted
-    return nil
   end
 
   # Based on the client's vector, determines what log entries are missing on
@@ -69,9 +69,9 @@ AntiEntropyServer = Struct.new(:tcp_port) do
     # For each missing log, convert to json and send, then wait for ack.
     missing_logs.each do |log|
       log_json = log.to_json.prefix_with_length!
-      logger.info("#{self.class}: about to send #{log_json}")
+      logger.info("#{self.class}-#{self.object_id}: about to send #{log_json}")
       client.write(log_json)
-      logger.info("#{self.class}: waiting for ACK of #{log_json}")
+      logger.info("#{self.class}-#{self.object_id}: waiting for ACK of #{log_json}")
       wait_for_ack(client, 20, logger)
     end
   end

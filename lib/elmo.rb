@@ -32,15 +32,16 @@ module Elmo
   # message.
   def wait_for_ack(socket, timeout=5, logger = nil)
     ack = nil
-    logger.info("#{self.class}: waiting #{timeout} secs for an ACK")
+    logger.info("#{self.class}-#{self.object_id}: waiting #{timeout} secs for an ACK")
     Timeout.timeout(timeout) do
       length = socket.read_length_field
-      logger.info("#{self.class}: length is #{length}") if logger
+      logger.info("#{self.class}-#{self.object_id}: length is #{length}") if logger
       ack = Yajl::Parser.parse(socket.read(length))
     end
 
     if ack["FLG"] == "ERROR"
       message = ack["MSG"] || "ACK ERROR contained no message."
+      logger.info("#{self.class}-#{self.object_id}: ACK received indicates error: #{ack["MSG"]}")
       raise AckError.new(message)
     end
   rescue Yajl::ParseError => e
