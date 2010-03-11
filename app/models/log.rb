@@ -1,6 +1,6 @@
 class Log < ActiveRecord::Base
   DEFAULT_JSON_FIELDS = [:OP, :TYPE, :UID, :TS, :OUID]
-  VECTOR_SELECTOR = {:select => 'UID, TS, MAX(TS)', :group => 'UID'}
+  VECTOR_SELECTOR = {:select => 'OUID, TS, MAX(TS)', :group => 'OUID'}
 
   column_names.each do |attr|
     alias_attribute attr.downcase, attr unless attr == 'id'
@@ -28,7 +28,11 @@ class Log < ActiveRecord::Base
   # should be used for a new action.
   def self.next_timestamp
     max_ts = Log.maximum('TS')
-    [max_ts, Time.now].max + 1
+    if max_ts.nil?
+      Time.now + 1
+    else
+      [max_ts, Time.now].max + 1
+    end
   end
 
   def self.add_logs(log_hashes)
@@ -75,7 +79,7 @@ class Log < ActiveRecord::Base
 
   def self.get_version_vector
     all(VECTOR_SELECTOR).inject({}) { |memo, entry|
-      memo[entry.uid] = entry.ts.to_i.to_s
+      memo[entry.ouid] = entry.ts.to_i.to_s
       memo
     }
   end
