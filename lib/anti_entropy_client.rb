@@ -5,7 +5,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
     logger.info("#{self.class}: started, opening TCP socket to #{server_addr}:#{tcp_port}")
     sock = TCPSocket.new(server_addr, tcp_port)
     send_version_vector(sock)
-    wait_for_ack(sock)
+    wait_for_ack(sock, 5, logger)
     raw_logs = grab_raw_logs(sock)
     log_hashes = split_logs(raw_logs)
     Log.add_logs(log_hashes)
@@ -17,7 +17,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   end
 
   def send_version_vector(sock, t = 5)
-    version_vector = Log.get_version_vector
+    version_vector = Log.get_version_vector.to_json
     logger.info("#{self.class}: sending version vector #{version_vector}")
     Timeout.timeout(t) { sock.write(version_vector.prefix_with_length!) }
   end
