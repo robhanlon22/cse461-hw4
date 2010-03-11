@@ -2,7 +2,7 @@
 	<div class="entry-title">
 	  <%= link_to "Photo #{truncate(photo.uid, 20)}", { :action => :view, :uuid => photo.uid } %>
 	</div>
-	<div class="date">Posted at timestamp <%= photo.ts.to_i %></div>
+        <div class="date">Posted at timestamp <%= "#{photo.ts.to_i} (#{time_ago_in_words(photo.ts)} ago)" %></div>
 	<%= link_to image_tag(photo.image.url, :class => "thumbnail"), { :action => :view, :uuid => photo.uid } %>
 	<div class="comments">
     <%= pluralize(comments_for_photo(photo).size, "comment") %>

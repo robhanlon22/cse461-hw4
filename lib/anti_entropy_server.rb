@@ -50,7 +50,7 @@ AntiEntropyServer = Struct.new(:tcp_port) do
     logger.info("#{self.class}-#{self.object_id}: Waiting for client's vector...")
     # Wait at most 5 seconds to receive a client's vector before
     client_vector = nil
-    Timeout.timeout(5) do
+    Timeout.timeout(10) do
       # Read the byte-length prefix off the front of the message, then try
       # to read that many bytes.
       byte_length = client.read_length_field

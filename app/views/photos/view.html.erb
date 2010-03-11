@@ -1,6 +1,6 @@
 <div class="entry">
 	<div class="entry-title">Photo: <%= @photo.uid %></div>
-	<div class="date">Posted at timestamp <%= @photo.ts.to_i %></div>
+	<div class="date">Posted at timestamp <%= "#{@photo.ts.to_i} (#{time_ago_in_words(@photo.ts)} ago)" %></div>
 	<div class="delete_link">
 	  <form name="delete_photo" action="<%= url_for( :action => :destroy ) %>"
 	    method="post">
