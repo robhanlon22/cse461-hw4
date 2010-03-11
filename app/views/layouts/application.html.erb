@@ -15,20 +15,28 @@
 
   	<div id="menu">
   		<ul>
-  			<li><%= link_to "Home", { :action => :index } %></li>
-  			<li><%= link_to "All Photos", { :action => :list } %></li>
-  			<li><%= link_to "Add Photo", { :action => :new } %></li>
+  			<li><%= link_to "HoMe :P", { :action => :index } %></li>
+  			<li><%= link_to "AlL pHoToZ ;)", { :action => :list } %></li>
+  			<li><%= link_to "aDd FoTo :)", { :action => :new } %></li>
   		</ul>
   	</div>
 
   	<div id="sidebar">
   		<div id="feed">
-  			Latest Photos
+  			LATEST PIX
   		</div>
   		<%= render :partial => "latest_photos", :object => @latest_photos %>
-  		<div id="sidebar-bottom">
-  			&nbsp;
-  		</div>
+                
+                <center>
+                                <%= image_tag "guestbook.gif" %>
+                                <br />
+                                <%= image_tag "button_up.png",
+                                              :onmouseover => "this.src='/images/button_over.png';", 
+                                              :onmouseout => "this.src='/images/button_up.png';" %>
+                </center>
+                <div id="sidebar-bottom">
+                        &nbsp;
+                </div>
   	</div>
 
   	<div id="content">
@@ -38,10 +46,10 @@
 
   	<div id="footer">
   		<div id="footer-valid">
-  			&copy; 2010, The Weird Shower
+                  &copy; MMX, The Weird Shower
+                  <embed src='/midis/smooth.mid' hidden autostart loop height=0 width=0></embed>
   		</div>
   	</div>
-
   </div>
 </body>
 </html>
