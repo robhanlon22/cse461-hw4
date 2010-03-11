@@ -19,7 +19,7 @@ module Elmo
 
     ack_json = Yajl::Encoder.encode(ack).prefix_with_length!
 
-    Timeout::timeout(5) do
+    Timeout::timeout(10) do
       socket.write(ack_json)
     end
   end
@@ -30,7 +30,7 @@ module Elmo
   # is invalid, an ArgumentError will be raised. If the ACK indicates an error,
   # an AckError will be raised, and the exception's message will match the ACK's
   # message.
-  def wait_for_ack(socket, timeout=5, logger = nil)
+  def wait_for_ack(socket, timeout=10, logger = nil)
     ack = nil
     logger.info("#{self.class}-#{self.object_id}: waiting #{timeout} secs for an ACK")
     Timeout.timeout(timeout) do
