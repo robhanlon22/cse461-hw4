@@ -48,7 +48,8 @@ a:hover {
 	}
 #header {
 	height:140px;
-	background:url(/images/bg-header.jpg) no-repeat;
+	background:url(/images/bg-header.jpg);
+	color: black;
 	}
 #menu {
 	height:35px;
@@ -67,6 +68,7 @@ a:hover {
 	width:500px;
 	min-height:400px;
 	padding-top: 10px;
+	background: top left url(/images/donkey_butt.png) no-repeat;
 	}
 #footer {
 	clear:both;
