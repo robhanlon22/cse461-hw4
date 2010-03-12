@@ -15,6 +15,7 @@ Rails::Initializer.run do |config|
   require 'lib/elmo'
   require 'lib/io_extensions'
   require 'lib/string_extensions'
+  require 'lib/ts_ms.rb'
 
   require 'lib/anti_entropy_client'
   require 'lib/anti_entropy_server'
