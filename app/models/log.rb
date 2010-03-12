@@ -1,4 +1,6 @@
 class Log < ActiveRecord::Base
+  include ActiveRecord::Serialization
+
   DEFAULT_JSON_FIELDS = [:OP, :TYPE, :UID, :TS, :OUID]
   VECTOR_SELECTOR = {:select => 'OUID, TS, MAX(TS)', :group => 'OUID'}
 
@@ -16,13 +18,13 @@ class Log < ActiveRecord::Base
   validates_format_of       :PUID,
                             :with => UUID_FORMAT,
                             :allow_nil => true
-                            
+
   # Ensures that no two log entries can have the same timestamp and origin UUID
   validates_uniqueness_of   :TS,
                             :scope => :OUID
 
   alias_method :to_json_old, :to_json
-  
+
   # Based on all of the known timestamps in the log, as well as the current
   # local time, returns the timestamp value (a Time object, not an integer) that
   # should be used for a new action.
@@ -40,7 +42,7 @@ class Log < ActiveRecord::Base
       log_hashes.each do |log_hash|
         log = new(log_hash)
         log.ts = Time.at(log.ts.to_i)
-        
+
         # Ensure that we never admit duplicate logs!
         if log.valid?
           log.save!
@@ -78,12 +80,12 @@ class Log < ActiveRecord::Base
   end
 
   def self.get_version_vector
-    all(VECTOR_SELECTOR).inject({}) { |memo, entry|
+    all(VECTOR_SELECTOR).inject({}) do |memo, entry|
       memo[entry.ouid] = entry.ts.to_i.to_s
       memo
-    }
+    end
   end
-  
+
   def self.for_comment(comment)
     Log.new(:OP   => "WRITE",
             :TYPE => "COMMENT",
@@ -91,9 +93,10 @@ class Log < ActiveRecord::Base
             :UID  => comment.uid,
             :PUID => comment.puid,
             :OUID => comment.ouid,
-            :data => comment.text)
+            :DATA => comment.text,
+            :SIZE => comment.text.size)
   end
-  
+
   # Auto-generates the next available timestamp
   def self.for_comment_delete(comment, instance_uuid=APP_UUID)
     Log.new(:OP   => "DELETE",
@@ -102,21 +105,19 @@ class Log < ActiveRecord::Base
             :TS   => next_timestamp,
             :OUID => instance_uuid)
   end
-  
+
   def self.for_photo(photo)
     # Read the file's bits from disk...
-    data = nil
-    File.open(photo.image.path, "rb") do |file|
-      data = Base64::encode64(file.read)
-    end
+    data = Base64.encode64(File.read(photo.image.path))
     Log.new(:OP   => "WRITE",
             :TYPE => "PHOTO",
             :TS   => photo.ts,
             :UID  => photo.uid,
             :OUID => photo.ouid,
-            :DATA => data)
+            :DATA => data,
+            :SIZE => data.size)
   end
-  
+
   # Auto-generates the next available timestamp
   def self.for_photo_delete(photo, instance_uuid=APP_UUID)
     Log.new(:OP   => "DELETE",
@@ -127,15 +128,17 @@ class Log < ActiveRecord::Base
   end
 
   def to_json
+    s = nil
     if write?
       if comment?
-        to_json_old(:only => DEFAULT_JSON_FIELDS + [:PUID, :SIZE, :DATA])
+        s = Serializer.new(self, :only => DEFAULT_JSON_FIELDS + [:PUID, :SIZE, :DATA])
       else # photo
-        to_json_old(:only => DEFAULT_JSON_FIELDS + [:SIZE, :DATA])
+        s = Serializer.new(self, :only => DEFAULT_JSON_FIELDS + [:SIZE, :DATA])
       end
     else # delete
-      to_json_old(:only => DEFAULT_JSON_FIELDS)
+      s = Serializer.new(self, :only => DEFAULT_JSON_FIELDS)
     end
+    returning(hash = s.serializable_record) { hash['TS'] = self.ts.to_i.to_s }.to_json
   end
 
   def write?
