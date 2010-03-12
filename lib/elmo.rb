@@ -17,7 +17,7 @@ module Elmo
     ack = { :OP => "ACK" }.merge(opts)
     ack[:FLG] = ack[:FLG].to_s.upcase if ack[:FLG]
 
-    logger.info("#{self.class}-#{self.object_id}: ack.inspect")
+    logger.info("#{self.class}-#{self.object_id}: in send_ack, ack is #{ack.inspect}")
 
     ack_json = Yajl::Encoder.encode(ack).prefix_with_length!
 
@@ -40,6 +40,8 @@ module Elmo
       logger.info("#{self.class}-#{self.object_id}: length is #{length}") if logger
       ack = Yajl::Parser.parse(socket.read(length))
     end
+
+    logger.info("#{self.class}-#{self.object_id}: in wait_ack, ack is #{ack.inspect}")
 
     # We do a case-insensitive comparison with success, in case they use funky
     # codes for their errors.
