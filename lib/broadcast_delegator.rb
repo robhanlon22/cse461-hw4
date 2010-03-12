@@ -3,6 +3,7 @@ class BroadcastDelegator
     # We'll use a hash to make sure we never spin up more than one client per
     # server IP address.
     @clients = {}
+    @client_mutex = Monitor.new # Ruby Monitors are reentrant; Mutexes are not
     
     BasicSocket.do_not_reverse_lookup = true
     logger.info("Listening for broadcasts...")
@@ -13,21 +14,34 @@ class BroadcastDelegator
       data, addr = sock.recvfrom(1024)
       logger.info("Received data.")
       logger.info("data = #{data}, from #{addr[2]}")
-      if valid?(data) and not @clients.has_key?(addr[2])
-        logger.info("data was valid, starting anti-entropy client...")
-        data = data.split
-        Thread.new do
+      
+      # Lock down the @clients hash until we know we've added the mapping
+      @client_mutex.synchronize do
+        if valid?(data) and not @clients.has_key?(addr[2])
+          logger.info("data was valid, starting anti-entropy client...")
+          data = data.split
           address = addr[2]
+          
+          # Create a new client to connect to remote instance, add to mapping
           new_client = AntiEntropyClient.new(address, data.last.to_i)
           @clients[address] = new_client
-          begin
-            new_client.run
-          ensure
-            @clients.delete(address)
+          
+          # Start a new thread for the new client (this thread does NOT have
+          # the lock on @client_mutex).
+          Thread.new do            
+            begin
+              new_client.run
+            ensure
+              # Make sure that when the thread terminates, we remove the
+              # mapping for this remote instance.
+              @client_mutex.synchronize { @clients.delete(address) }
+            end
           end
         end
-        sleep 1
       end
+      
+      # Is this good? Our thinking was that updating more often would be a waste.      
+      sleep 1
     end
   end
 

@@ -42,7 +42,7 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
         length = sock.read_length_field
         raw_logs << sock.read(length)
       end
-      send_ack(sock)
+      send_ack(sock, :FLG => :success)
     end
     logger.info("#{self.class}-#{self.object_id}: raw logs are #{raw_logs * "\n"}")
     raw_logs
