@@ -8,7 +8,7 @@ require File.join(File.dirname(__FILE__), 'boot')
 
 Rails::Initializer.run do |config|
   config.gem 'uuid'
-  config.gem 'yajl-ruby', :lib => 'yajl'
+  config.gem 'yajl-ruby', :lib => 'yajl/json_gem'
   config.gem 'mongrel', :lib => false
   config.gem 'sqlite3-ruby', :lib => false
 
@@ -25,15 +25,13 @@ Rails::Initializer.run do |config|
 end
 
 unless $0 == 'script/console' or $0 == 'irb'
-  Thread.new do
-    BroadcastDelegator.new.run
-  end
-
-  Thread.new do
-    Broadcaster.new(PORT).run
-  end
-
-  Thread.new do
-    AntiEntropyServer.new(PORT).run
+  [BroadcastDelegator, Broadcaster, AntiEntropyServer].each do |e|
+    Thread.new do
+      begin
+        e.new.run
+      rescue Exception
+        e.new(PORT).run
+      end
+    end
   end
 end

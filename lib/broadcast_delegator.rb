@@ -6,19 +6,18 @@ class BroadcastDelegator
     @client_mutex = Monitor.new # Ruby Monitors are reentrant; Mutexes are not
     
     BasicSocket.do_not_reverse_lookup = true
-    logger.info("Listening for broadcasts...")
+    logger.info("#{self.class}-#{self.object_id}: Listening for broadcasts...")
     sock = UDPSocket.new
     sock.bind('0.0.0.0', 30000)
     loop do
-      logger.info("Waiting for data...")
+      logger.info("#{self.class}-#{self.object_id}: Waiting for broadcast data...")
       data, addr = sock.recvfrom(1024)
-      logger.info("Received data.")
-      logger.info("data = #{data}, from #{addr[2]}")
+      logger.info("#{self.class}-#{self.object_id}: Received broadcast data, data = #{data}, from #{addr[2]}")
       
       # Lock down the @clients hash until we know we've added the mapping
       @client_mutex.synchronize do
         if valid?(data) and not @clients.has_key?(addr[2])
-          logger.info("data was valid, starting anti-entropy client...")
+          logger.info("#{self.class}-#{self.object_id}: data was valid, starting anti-entropy client...")
           data = data.split
           address = addr[2]
           
