@@ -1,7 +1,7 @@
 module IoExtensions
   def read_length_field
     length = ''
-    until (c = getc) == ?:
+    until (c = getc) == ?: or c.nil?
       length << c
     end
     length.to_i
