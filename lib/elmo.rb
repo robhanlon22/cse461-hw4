@@ -17,6 +17,8 @@ module Elmo
     ack = { :OP => "ACK" }.merge(opts)
     ack[:FLG] = ack[:FLG].to_s.upcase if ack[:FLG]
 
+    logger.log("#{self.class}-#{self.object_id}: ack.inspect")
+
     ack_json = Yajl::Encoder.encode(ack).prefix_with_length!
 
     Timeout::timeout(10) do
