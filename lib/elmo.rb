@@ -42,6 +42,7 @@ module Elmo
     end
 
     logger.info("#{self.class}-#{self.object_id}: in wait_ack, ack is #{ack.inspect}")
+    logger.info("#{self.class}-#{self.object_id}: ack['FLG'].casecmp('SUCCESS') = #{ack["FLG"].casecmp("SUCCESS")}")
 
     # We do a case-insensitive comparison with success, in case they use funky
     # codes for their errors.
