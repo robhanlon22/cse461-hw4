@@ -33,6 +33,13 @@ This approach has one additional benefit, and that is an attempt at enforcing so
 
 5. We followed most of the suggested implementation design. However, we did not use Java, nor did we follow the advice to keep things single threaded. Instead, we used Ruby and, for our UI, the Rails framework. We chose Ruby over Java for its terseness and ease of use, for the abundance of available libraries, and, well, because both of us are quite sick of Java. Using Rails had the added benefit that we could use the default Rails ORM layer: ActiveRecord. To make matters even easier, Rails now defaults to using sqlite3 unless otherwise specified. We used threading because it was, honestly, easier for us to write and think about. While this did mean that we needed to address a few issues that single-threaded implementations wouldn't (e.g., the issue above), a few extra checks here and there and a healthy dose of database-level transactions seemed to do the trick. sqlite locks the whole database on writes anyway, so as far as we can tell, no performance was really lost.
 
-6. ROB THIS IS ALL YOU MATE
+6. This is guaranteed to work on the lab machines, but I can't vouch for any other boxes:
+  a. Grab this shell script: http://cs.washington.edu/homes/rob/hanlon-otero-461-hw4.sh
+    i. Inspect the shell script for correctness! If you're really paranoid, grab the .tar.gz file mentioned within that shell script and inspect it as well.
+  b. Run that shell script (bash hanlon-otero-461-hw4.sh)! It'll grab our p2plickr app (as well as a self-contained Ruby environment), inflate it in /tmp, set up environment variables, and run the app.
+  c. Turn on your speakers. Visit http://<hostname>:3000/. Have fun!
+
+If you'd like to run everything again without having to grab the entire environment another time, then just run run.sh (bash run.sh), found in /tmp/hanlon-otero-461-hw4. Be forewarned! run.sh by default resets the current p2plickr database. If you don't want this to happen, then run run.sh with the --dont-reset flag.
+  
 
 7. Hasn't failed us yet (yes, we think it works).
