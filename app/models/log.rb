@@ -201,7 +201,7 @@ class Log < ActiveRecord::Base
   # We'll need to take a millisecond timestamp and convert to microseconds.
   # Returns a Time object (which ActiveRecord converts to DateTime for us) with
   # the proper value.
-  def datetime_from_millis(millis_timestamp)
+  def self.datetime_from_millis(millis_timestamp)
     millis_timestamp = millis_timestamp.to_i # just in case it's a string
     seconds = millis_timestamp / 1000
     remainder_microsecs = (millis_timestamp % 1000) * 1000
