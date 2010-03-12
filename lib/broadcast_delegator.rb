@@ -37,7 +37,7 @@ class BroadcastDelegator
   end
 
   def valid?(data)
-    data =~ /^flickr \d{1,5}$/
+    data =~ /^flickr\s+\d{1,5}\s*$/i
     logger.info("#{self.class}-#{self.object_id}: Is the broadcast data valid: #{data ? 'yes' : 'no' }")
   end
 end
