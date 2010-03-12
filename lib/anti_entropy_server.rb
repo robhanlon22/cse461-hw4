@@ -90,13 +90,8 @@ AntiEntropyServer = Struct.new(:tcp_port) do
                                  :order => "TS ASC")
       end
     end
+    
     # Sort all missing logs by timestamp, breaking ties by OUID
-    missing_logs.sort! do |a, b|
-      if a.ts == b.ts
-        a.ouid <=> b.ouid
-      else
-        a.ts <=> b.ts
-      end
-    end
+    missing_logs.sort
   end
 end

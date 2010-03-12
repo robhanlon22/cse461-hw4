@@ -30,18 +30,37 @@ class Log < ActiveRecord::Base
   # should be used for a new action.
   def self.next_timestamp
     max_ts = Log.maximum('TS')
+    ts_to_use = nil
     if max_ts.nil?
-      Time.now + 1
+      ts_to_use = Time.now
     else
-      [max_ts, Time.now].max + 1
+      ts_to_use = [max_ts, Time.now].max
     end
+    
+    # Time objects + operator expects seconds, not milliseconds
+    ts_to_use + 0.001
   end
 
+  # Given an array of log entry hashes (parsed from JSON), convert them to Log
+  # records and save them in our database.
   def self.add_logs(log_hashes)
+    # Make sure that logs are sorted, just in case...
+    log_hashes.sort! do |hash1, hash2|
+      if hash1['TS'] == hash2['TS']
+        hash1['OUID'] <=> hash2['OUID']
+      else
+        # These timestamps will be strings. Convert.
+        hash1['TS'].to_i <=> hash2['TS'].to_i
+      end
+    end
+    
     Log.transaction do
       log_hashes.each do |log_hash|
-        log = new(log_hash)
-        log.ts = Time.at(log.ts.to_i)
+        log = Log.new(log_hash)
+        
+        # This is a little complicated because of Ruby's seconds-based Time obj.
+        # This timestamp is in millis, so we need to convert.
+        log.ts = datetime_from_millis(log_hash['TS'])
 
         # Ensure that we never admit duplicate logs!
         if log.valid?
@@ -81,7 +100,7 @@ class Log < ActiveRecord::Base
 
   def self.get_version_vector
     all(VECTOR_SELECTOR).inject({}) do |memo, entry|
-      memo[entry.ouid] = entry.ts.to_i.to_s
+      memo[entry.ouid] = entry.ts_ms.to_s
       memo
     end
   end
@@ -126,6 +145,24 @@ class Log < ActiveRecord::Base
             :TS   => next_timestamp,
             :OUID => instance_uuid)
   end
+  
+  # Like in Perl, this is a comparison operator. This orders first by timestamp,
+  # breaking ties on OUID.
+  def <=>(other)
+    if self.ts == other.ts
+      self.ouid <=> other.ouid
+    else
+      self.ts <=> other.ts
+    end
+  end
+
+  # This is a VERY important method because the protocol demands MILLISECONDS!
+  # Ruby's Time object's to_i method returns SECONDS. We need to convert. This
+  # method returns an INTEGER (not DateTime) value of the epoch time in MS.
+  def ts_ms
+    ts_millis = ts.to_i * 1000
+    ts_millis += ts.usec / 1000 # Add millisecond accuracy (microseconds / 1000)
+  end
 
   def to_json
     s = nil
@@ -138,7 +175,7 @@ class Log < ActiveRecord::Base
     else # delete
       s = Serializer.new(self, :only => DEFAULT_JSON_FIELDS)
     end
-    returning(hash = s.serializable_record) { hash['TS'] = self.ts.to_i.to_s }.to_json
+    returning(hash = s.serializable_record) { hash['TS'] = self.ts_ms.to_s }.to_json
   end
 
   def write?
@@ -155,5 +192,21 @@ class Log < ActiveRecord::Base
 
   def photo?
     type == 'PHOTO'
+  end
+  
+  private
+  
+  # A Ruby Time object can either be specified by either seconds or microseconds.
+  # We'll need to take a millisecond timestamp and convert to microseconds.
+  # Returns a Time object (which ActiveRecord converts to DateTime for us) with
+  # the proper value.
+  def datetime_from_millis(millis_timestamp)
+    millis_timestamp = millis_timestamp.to_i # just in case it's a string
+    seconds = millis_timestamp / 1000
+    remainder_microsecs = (millis_timestamp % 1000) * 1000
+    
+    # This method takes seconds as a first parameter, and REMAINDER microseconds
+    # as a second parameter.
+    Time.at(seconds, remainder_microsecs)
   end
 end

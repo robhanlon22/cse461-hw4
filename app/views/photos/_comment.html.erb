@@ -1,6 +1,6 @@
 <li class="comment">
   <h3>
-    At <%= "#{comment.ts.to_i} (#{time_ago_in_words(comment.ts)} ago)" %>,
+    At <%= "#{comment.ts_ms} (#{time_ago_in_words(comment.ts)} ago)" %>,
     <%= link_to truncate(comment.ouid, 20), { :action => :list, :uuid => comment.ouid} %> said:
   </h3>
   <p>
