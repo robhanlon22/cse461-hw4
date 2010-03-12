@@ -146,6 +146,14 @@ class Log < ActiveRecord::Base
             :OUID => instance_uuid)
   end
   
+  def validate
+    # Two things should go here, but we can't put them here until we're
+    # sure of how transactions commit things to the DB:
+    #
+    # - No comment should save if it refers to a photo that doesn't exist
+    # - No delete should work if an object with that UUID does not exist
+  end
+  
   # Like in Perl, this is a comparison operator. This orders first by timestamp,
   # breaking ties on OUID.
   def <=>(other)
