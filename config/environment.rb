@@ -29,9 +29,9 @@ unless $0 == 'script/console' or $0 == 'irb'
   [BroadcastDelegator, Broadcaster, AntiEntropyServer].each do |e|
     Thread.new do
       begin
-        e.new.run
-      rescue Exception
         e.new(PORT).run
+      rescue Exception
+        e.new.run
       end
     end
   end
