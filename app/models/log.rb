@@ -148,11 +148,31 @@ class Log < ActiveRecord::Base
   end
   
   def validate
-    # Two things should go here, but we can't put them here until we're
-    # sure of how transactions commit things to the DB:
-    #
-    # - No comment should save if it refers to a photo that doesn't exist
-    # - No delete should work if an object with that UUID does not exist
+    # No comment should save if it refers to a photo that doesn't exist
+    if self.comment?
+      # Find the most recent log entry that refers to this comment's photo
+      latest_log = Log.find(:first,
+                            :conditions => ["TYPE = ? AND UID = ?", 'PHOTO', self.puid],
+                            :order => "TS DESC")
+                            
+      # If there is no log record of the associated photo, fail validation.
+      # Note that if our last record of the photo is a delete, we can't be sure
+      # that something's gone wrong, so we don't do anything.
+      if latest_log.nil?
+        errors.add(:PUID, "Photo with UUID '#{puid}' does not exist in the system.")
+      end
+    end
+    
+    # No delete should work if we have no record of the thing to be deleted.
+    if self.delete?
+      # Find the most recent log entry referring to the to-be-deleted UUID
+      latest_log = Log.find_by_uid(self.uid)
+      
+      # If no log record exists, fail validation.
+      if latest_log.nil?
+        errors.add(:UID, "No record with UUID '#{uid}' was ever created.")
+      end
+    end
   end
   
   # Like in Perl, this is a comparison operator. This orders first by timestamp,
