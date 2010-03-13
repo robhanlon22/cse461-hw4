@@ -53,13 +53,25 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
         
         bytes_read += bytes_to_read
       end
+      
+      # Add the concatenation of the chunks (of one log entry) to raw logs array,
+      # then send an ack.
+      raw_logs << chunks.join
       send_ack(sock, :FLG => :success)
     end
     logger.info("#{self.class}-#{self.object_id}: raw logs are #{raw_logs * "\n"}")
     raw_logs
   end
 
+  # When parsing, we also make sure that case is consistent on all keys (i.e.,
+  # we upcase them).
   def split_logs(raw_logs)
-    raw_logs.inject([]) { |m, raw| m << Yajl::Parser.parse(raw) }
+    raw_logs.inject([]) do |memo, raw|
+      log_hash = Yajl::Parser.parse(raw)      
+      memo << log_hash.inject({}) do |caps_hash, pair|
+        caps_hash[pair.first.upcase] = pair.last
+        caps_hash
+      end
+    end
   end
 end
