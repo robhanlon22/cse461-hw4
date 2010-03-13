@@ -1,5 +1,7 @@
 AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
   include Elmo
+  
+  READ_BUFFER_SIZE = 1024
 
   def run
     logger.info("#{self.class}-#{self.object_id}: started, opening TCP socket to #{server_addr}:#{tcp_port}")
@@ -37,10 +39,19 @@ AntiEntropyClient = Struct.new(:server_addr, :tcp_port) do
     logger.info("#{self.class}-#{self.object_id}: grabbing raw logs...")
     raw_logs = []
     until sock.eof?
-      # MESS WITH THIS TIMEOUT SO IT'S MORE EFFICIENT!
-      Timeout.timeout(t) do
-        length = sock.read_length_field
-        raw_logs << sock.read(length)
+      length, bytes_read = nil, 0
+      Timeout::timeout(t) { length = sock.read_length_field }
+      
+      # We want to time-out when no progress is made, but not time-out when
+      # reading a large message, so we need to read a chunk at a time.
+      chunks = []
+      while bytes_read < length
+        # Read up to READ_BUFFER_SIZE bytes at a time
+        bytes_to_read = [(length - bytes_read), READ_BUFFER_SIZE].min 
+        
+        Timeout::timeout(t) { chunks << sock.read(bytes_to_read) }
+        
+        bytes_read += bytes_to_read
       end
       send_ack(sock, :FLG => :success)
     end
